@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -27,11 +28,15 @@ import java.util.List;
 @Slf4j
 public class UserServiceImplementation implements UserServiceInterface, UserDetailsService {
 
+
+
+    @Autowired
+    private final UserRepository userRepo;
+    @Autowired
+    private final RoleRepository roleRepo;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    private final UserRepository userRepo;
-    private final RoleRepository roleRepo;
 
 
     @Override
@@ -40,7 +45,7 @@ public class UserServiceImplementation implements UserServiceInterface, UserDeta
         newUser.setEmail(userDTO.getEmail());
         newUser.setFirstName(userDTO.getFirstName());
         newUser.setLastName(userDTO.getLastName());
-        newUser.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        newUser.setPassword(this.passwordEncoder.encode(userDTO.getPassword()));
         newUser.setUsername(userDTO.getUsername());
         return userRepo.save(newUser);
     }
