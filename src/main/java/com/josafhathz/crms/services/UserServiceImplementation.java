@@ -10,7 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -76,23 +75,18 @@ public class UserServiceImplementation implements UserServiceInterface, UserDeta
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         UserModel user = userRepo.findByUsername(username);
         if (user == null) {
-            log.error("User not found");
             throw new UsernameNotFoundException("User not found");
-        } else {
-            log.info("User found on db");
-
-
         }
-
         Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-
         user.getRoleModels().forEach(
                 role -> {
                     authorities.add(new SimpleGrantedAuthority(role.getRoleName()));
                 }
         );
-
         return new User(user.getUsername(), user.getPassword(), authorities);
-
     }
+
+
+
+
 }

@@ -1,14 +1,14 @@
 package com.josafhathz.crms.filter;
 
-import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.josafhathz.crms.utilities.JWTUtilities;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
+
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -17,10 +17,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
+
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
+
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -38,8 +38,6 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         String username = request.getParameter("username");
         String password = request.getParameter("password");
-        log.info("username is: {}", username);
-        log.info("password is: {}", password);
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(username, password);
         return authenticationManager.authenticate(authToken);
     }
@@ -47,30 +45,14 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
         User user = (User) authResult.getPrincipal();
-        Algorithm algorithm = Algorithm.HMAC256("hola".getBytes());
-        String access_token = JWT.create()
-                .withSubject(user.getUsername())
-                        .withExpiresAt(new Date(System.currentTimeMillis() + 10 * 68 * 10000))
-                                .withIssuer(request.getRequestURL().toString())
-                                        .withClaim("roles", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
-                                                .sign(algorithm);
-
-        String refresh_token = JWT.create()
-                .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + 30 * 68 * 10000))
-                .withIssuer(request.getRequestURL().toString())
-                .withClaim("roles", user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()))
-                .sign(algorithm);
-
-        log.info(access_token);
-
-        response.setHeader("access_token", access_token);
-        response.setHeader("refresh_token", refresh_token);
-
+        Algorithm algorithm = Algorithm.HMAC256("GET BACK".getBytes());
+        String access_token = JWTUtilities.createJWTToken(user , 10 , request.getRequestURL().toString());
+        String refresh_token = JWTUtilities.createJWTToken(user, 30 , request.getRequestURL().toString());
         Map<String , String > tokens = new HashMap<>();
         tokens.put("access_token", access_token);
         tokens.put("refresh_token", refresh_token);
         response.setContentType(APPLICATION_JSON_VALUE);
+        // this adds to the body response the values I'd like
         new ObjectMapper().writeValue(response.getOutputStream(), tokens);
     }
 }
